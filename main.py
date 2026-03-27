@@ -66,11 +66,20 @@ def pages():
         for item in p[0]:
             st.write(item[1], ' : ', str(item[2] * 100) + '%')
 
-        # Allow users to upload images
+        # Allow users to upload images or use example
+        st.subheader('Try your own image')
         uploaded_file = st.file_uploader('Upload Image', type=['jpg', 'jpeg', 'png'])
+
+        use_example = st.button('Or use example image (motorbike.jpg)')
 
         if uploaded_file is not None:
             pil_img = Image.open(uploaded_file)
+        elif use_example:
+            pil_img = Image.open('motorbike.jpg')
+        else:
+            pil_img = None
+
+        if pil_img is not None:
             st.image(pil_img)
 
             pil_img_resized = pil_img.resize((224, 224))
@@ -105,26 +114,35 @@ def pages():
 
         uploaded_file = st.file_uploader('Upload Image')
 
+        use_example_hw = st.button('Or use example image (img.JPG)')
+
         if uploaded_file is not None:
             pil_img = Image.open(uploaded_file)
             st.image(pil_img)
-
             uploaded_file.seek(0)
             lat, lon = extract_coordinates(uploaded_file)
+        elif use_example_hw:
+            pil_img = Image.open('img.JPG')
+            st.image(pil_img)
+            with open('img.JPG', 'rb') as f:
+                lat, lon = extract_coordinates(f)
+        else:
+            pil_img = None
+            lat, lon = None, None
 
-            if lat is not None and lon is not None:
-                st.write(f'Latitude: {lat}')
-                st.write(f'Longitude: {lon}')
+        if lat is not None and lon is not None:
+            st.write(f'Latitude: {lat}')
+            st.write(f'Longitude: {lon}')
 
-                m = folium.Map(location=[lat, lon], zoom_start=16)
-                folium.Marker(
-                    [lat, lon],
-                    popup='Image Location',
-                    tooltip='Image Location'
-                ).add_to(m)
-                folium_static(m)
-            else:
-                st.error('No EXIF GPS data found in this image.')
+            m = folium.Map(location=[lat, lon], zoom_start=16)
+            folium.Marker(
+                [lat, lon],
+                popup='Image Location',
+                tooltip='Image Location'
+            ).add_to(m)
+            folium_static(m)
+        elif pil_img is not None:
+            st.error('No EXIF GPS data found in this image.')
 
 
 pages()
