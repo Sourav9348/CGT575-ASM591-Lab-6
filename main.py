@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import tensorflow as tf
 import keras
 import folium
 from exif import Image as exif
@@ -10,8 +11,8 @@ import matplotlib.pyplot as plt
 from streamlit_folium import folium_static
 from PIL import Image
 
-from keras.applications.vgg16 import VGG16, preprocess_input, decode_predictions
-from keras.utils import load_img, img_to_array
+from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input, decode_predictions
+from tensorflow.keras.utils import load_img, img_to_array
 
 
 st.title('CGT575 / ASM591 Lab 6')
@@ -63,7 +64,7 @@ def pages():
 
         st.image(img_path)
         for item in p[0]:
-    	    st.write(item[1], ' : ', str(item[2] * 100) + '%')
+            st.write(item[1], ' : ', str(item[2] * 100) + '%')
 
         # Allow users to upload images
         uploaded_file = st.file_uploader('Upload Image', type=['jpg', 'jpeg', 'png'])
