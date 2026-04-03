@@ -14,15 +14,11 @@ from PIL import Image
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input, decode_predictions
 from tensorflow.keras.utils import load_img, img_to_array
 
-# NEW IMPORTS FOR OBJECT DETECTION
-import cv2
-
 
 st.title('CGT575 / ASM591 Lab 6')
 st.write('Deploying Deep Learning Models on Web and Smartphone Applications Using Streamlit API')
 
-# ✅ Added "Object Detection" here
-task = st.sidebar.selectbox('Select Page', ['Homepage', 'Deep Learning', 'Mapping', 'Homework', 'Object Detection'])
+task = st.sidebar.selectbox('Select Page', ['Homepage', 'Deep Learning', 'Mapping', 'Homework'])
 
 
 # Helper functions for extracting geocoordinates from EXIF data
@@ -40,45 +36,6 @@ def extract_coordinates(uploaded_file):
         lon = decimal_coords(img_exif.gps_longitude, img_exif.gps_longitude_ref)
         return lat, lon
     return None, None
-
-
-# ✅ Simple object detection function (MobileNet SSD using OpenCV)
-def detect_objects(image_path):
-    net = cv2.dnn.readNetFromCaffe(
-        'MobileNetSSD_deploy.prototxt.txt',
-        'MobileNetSSD_deploy.caffemodel'
-    )
-
-    CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
-               "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
-               "dog", "horse", "motorbike", "person", "pottedplant",
-               "sheep", "sofa", "train", "tvmonitor"]
-
-    image = cv2.imread(image_path)
-    (h, w) = image.shape[:2]
-
-    blob = cv2.dnn.blobFromImage(cv2.resize(image, (300, 300)),
-                                 0.007843, (300, 300), 127.5)
-
-    net.setInput(blob)
-    detections = net.forward()
-
-    for i in range(detections.shape[2]):
-        confidence = detections[0, 0, i, 2]
-
-        if confidence > 0.4:
-            idx = int(detections[0, 0, i, 1])
-            label = CLASSES[idx]
-
-            box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
-            (startX, startY, endX, endY) = box.astype("int")
-
-            cv2.rectangle(image, (startX, startY), (endX, endY),
-                          (0, 255, 0), 2)
-            cv2.putText(image, label, (startX, startY - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-
-    return image
 
 
 def pages():
@@ -109,6 +66,7 @@ def pages():
         for item in p[0]:
             st.write(item[1], ' : ', str(item[2] * 100) + '%')
 
+        # Allow users to upload images or use example
         st.subheader('Try your own image')
         uploaded_file = st.file_uploader('Upload Image', type=['jpg', 'jpeg', 'png'])
 
@@ -185,30 +143,6 @@ def pages():
             folium_static(m)
         elif pil_img is not None:
             st.error('No EXIF GPS data found in this image.')
-
-    # ── OBJECT DETECTION ──  NEW PAGE
-    elif task == 'Object Detection':
-        st.header('Object Detection')
-
-        st.write('Displaying object detection results on 5 images')
-
-        image_paths = [
-            'image1.jpg',
-            'image2.jpg',
-            'image3.jpg',
-            'image4.jpg',
-            'image5.jpg'
-        ]
-
-        for img_path in image_paths:
-            st.subheader(img_path)
-
-            detected_img = detect_objects(img_path)
-
-            # Convert BGR (OpenCV) → RGB
-            detected_img = cv2.cvtColor(detected_img, cv2.COLOR_BGR2RGB)
-
-            st.image(detected_img, caption='Detected Objects', use_column_width=True)
 
 
 pages()
