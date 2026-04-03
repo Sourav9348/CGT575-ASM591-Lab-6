@@ -10,3 +10,4 @@ pandas
 geopandas
 plotly
 matplotlib
+cv2
